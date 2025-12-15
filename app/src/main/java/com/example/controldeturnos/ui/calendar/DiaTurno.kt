@@ -4,5 +4,5 @@ import com.example.controldeturnos.ui.turnos.Turno
 
 data class DiaTurno(
     val turno: Turno,
-    val horasExtra: Int? = null
+    val horasExtra: Int = 0
 )

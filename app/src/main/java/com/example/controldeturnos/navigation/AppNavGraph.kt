@@ -1,28 +1,25 @@
 package com.example.controldeturnos.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.controldeturnos.ui.calendar.CalendarScreen
-import com.example.controldeturnos.ui.calendar.DiaTurno
 import com.example.controldeturnos.ui.horas.HorasScreen
-import com.example.controldeturnos.ui.turnos.Turno
 import com.example.controldeturnos.ui.turnos.TurnosScreen
+import com.example.controldeturnos.ui.shared.TurnosSharedViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 @Composable
 fun AppNavGraph() {
 
     val navController = rememberNavController()
 
-    // ✅ TIPO CORRECTO
-    val turnosPorDia = remember {
-        mutableStateMapOf<Int, DiaTurno>()
-    }
+    // ✅ ViewModel compartido entre Calendar, Turnos y Horas
+    val sharedViewModel: TurnosSharedViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -31,7 +28,7 @@ fun AppNavGraph() {
 
         composable("calendar") {
             CalendarScreen(
-                turnosPorDia = turnosPorDia,
+                sharedViewModel = sharedViewModel,
                 onDayClick = { day ->
                     navController.navigate("turnos/$day")
                 },
@@ -47,10 +44,13 @@ fun AppNavGraph() {
         ) { backStack ->
             val day = backStack.arguments!!.getInt("day")
 
-            TurnosScreen(day) { turno ->
-                turnosPorDia[day] = DiaTurno(turno = turno)
-                navController.popBackStack()
-            }
+            TurnosScreen(
+                day = day,
+                sharedViewModel = sharedViewModel,
+                onDone = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(
@@ -59,22 +59,14 @@ fun AppNavGraph() {
         ) { backStack ->
             val day = backStack.arguments!!.getInt("day")
 
-            val diaTurno = turnosPorDia[day]
-
-            // ❌ No permitir horas en Libre o Vacaciones
-            if (
-                diaTurno != null &&
-                diaTurno.turno != Turno.LIBRE &&
-                diaTurno.turno != Turno.VACACIONES
-            ) {
-                HorasScreen(day) { horas ->
-                    turnosPorDia[day] =
-                        diaTurno.copy(horasExtra = horas)
+            HorasScreen(
+                day = day,
+                sharedViewModel = sharedViewModel,
+                onDone = {
                     navController.popBackStack()
                 }
-            } else {
-                navController.popBackStack()
-            }
+            )
         }
     }
 }
+
