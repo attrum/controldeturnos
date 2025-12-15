@@ -15,6 +15,16 @@ android {
         versionName = "1.0"
     }
 
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -29,15 +39,27 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
 }
 
-
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
-    implementation("androidx.compose.material3:material3")
+
+    // Compose BOM
+    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
+
+    // Core Compose
     implementation("androidx.activity:activity-compose")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+
+    // Material 3 (Material You)
+    implementation("androidx.compose.material3:material3")
+
+    // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.8.3")
-    implementation("com.google.android.material:material:1.12.0")
+
+    // Debug tools
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

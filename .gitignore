@@ -13,3 +13,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# app
+build/
+app/build/
+.idea/
+.gradle/
+local.properties/

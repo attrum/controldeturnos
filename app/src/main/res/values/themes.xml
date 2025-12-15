@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.ControlDeTurnos"
-        parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style
+        name="Theme.ControlDeTurnos"
+        parent="@android:style/Theme.DeviceDefault.DayNight">
+        <!-- Tema base mínimo para Compose -->
     </style>
 
 </resources>

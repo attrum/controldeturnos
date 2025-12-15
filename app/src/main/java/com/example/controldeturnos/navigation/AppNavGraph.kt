@@ -1,48 +1,80 @@
 package com.example.controldeturnos.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.controldeturnos.ui.calendar.CalendarScreen
+import com.example.controldeturnos.ui.calendar.DiaTurno
 import com.example.controldeturnos.ui.horas.HorasScreen
+import com.example.controldeturnos.ui.turnos.Turno
 import com.example.controldeturnos.ui.turnos.TurnosScreen
-
-sealed class Screen(val route: String) {
-    object Calendar : Screen("calendar")
-    object Turnos : Screen("turnos/{day}") {
-        fun create(day: Int) = "turnos/$day"
-    }
-    object Horas : Screen("horas/{day}") {
-        fun create(day: Int) = "horas/$day"
-    }
-}
 
 @Composable
 fun AppNavGraph() {
+
     val navController = rememberNavController()
+
+    // ✅ TIPO CORRECTO
+    val turnosPorDia = remember {
+        mutableStateMapOf<Int, DiaTurno>()
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Calendar.route
+        startDestination = "calendar"
     ) {
-        composable(Screen.Calendar.route) {
+
+        composable("calendar") {
             CalendarScreen(
+                turnosPorDia = turnosPorDia,
                 onDayClick = { day ->
-                    navController.navigate(Screen.Turnos.create(day))
+                    navController.navigate("turnos/$day")
                 },
                 onDayLongClick = { day ->
-                    navController.navigate(Screen.Horas.create(day))
+                    navController.navigate("horas/$day")
                 }
             )
         }
 
-        composable(Screen.Turnos.route) {
-            TurnosScreen()
+        composable(
+            route = "turnos/{day}",
+            arguments = listOf(navArgument("day") { type = NavType.IntType })
+        ) { backStack ->
+            val day = backStack.arguments!!.getInt("day")
+
+            TurnosScreen(day) { turno ->
+                turnosPorDia[day] = DiaTurno(turno = turno)
+                navController.popBackStack()
+            }
         }
 
-        composable(Screen.Horas.route) {
-            HorasScreen()
+        composable(
+            route = "horas/{day}",
+            arguments = listOf(navArgument("day") { type = NavType.IntType })
+        ) { backStack ->
+            val day = backStack.arguments!!.getInt("day")
+
+            val diaTurno = turnosPorDia[day]
+
+            // ❌ No permitir horas en Libre o Vacaciones
+            if (
+                diaTurno != null &&
+                diaTurno.turno != Turno.LIBRE &&
+                diaTurno.turno != Turno.VACACIONES
+            ) {
+                HorasScreen(day) { horas ->
+                    turnosPorDia[day] =
+                        diaTurno.copy(horasExtra = horas)
+                    navController.popBackStack()
+                }
+            } else {
+                navController.popBackStack()
+            }
         }
     }
 }
